@@ -1,0 +1,134 @@
+.wallet {
+  background: linear-gradient(135deg, #7c4dff, #536dfe);
+  color: #ffffff;
+  border-radius: 28rpx;
+  padding: 36rpx 32rpx;
+  box-shadow: 0 14rpx 36rpx rgba(124, 77, 255, 0.35);
+  margin-bottom: 24rpx;
+}
+
+.w-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.w-name {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.w-no {
+  font-size: 24rpx;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.switch-btn {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 28rpx;
+  padding: 8rpx 24rpx;
+  font-size: 24rpx;
+}
+
+.w-score {
+  font-size: 80rpx;
+  font-weight: 800;
+  margin: 20rpx 0 8rpx;
+}
+
+.w-unit {
+  font-size: 28rpx;
+  font-weight: 400;
+}
+
+.w-chips {
+  margin-top: 12rpx;
+}
+
+.wallet .chip {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.empty-wallet .w-name {
+  font-size: 34rpx;
+}
+
+.w-sub {
+  font-size: 26rpx;
+  opacity: 0.85;
+  margin-top: 16rpx;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+}
+
+.i-emoji {
+  font-size: 64rpx;
+  margin-right: 24rpx;
+}
+
+.i-info {
+  flex: 1;
+}
+
+.i-name {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.i-desc {
+  font-size: 24rpx;
+  color: #999999;
+  margin-top: 6rpx;
+}
+
+.i-right {
+  text-align: center;
+}
+
+.i-cost {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #ff6b35;
+  margin-bottom: 10rpx;
+}
+
+.i-btn {
+  background: linear-gradient(135deg, #ff9a3c, #ff5f6d);
+  color: #ffffff;
+  border-radius: 32rpx;
+  padding: 12rpx 36rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.i-btn.disabled {
+  background: #e5e0da;
+  color: #b0a8a0;
+}
+
+.tips {
+  padding: 28rpx 32rpx;
+}
+
+.t-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin-bottom: 16rpx;
+}
+
+.t-row {
+  font-size: 25rpx;
+  color: #666666;
+  line-height: 44rpx;
+}
+
+.no-data {
+  text-align: center;
+  color: #c0b8b0;
+  padding: 40rpx 0;
+}

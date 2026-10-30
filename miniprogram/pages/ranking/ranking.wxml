@@ -1,0 +1,43 @@
+<view class="container">
+  <!-- 统计卡片 -->
+  <view class="stats">
+    <view class="stat">
+      <view class="num">{{stats.total_students || 0}}</view>
+      <view class="label">总人数</view>
+    </view>
+    <view class="stat">
+      <view class="num">{{stats.total_rolls || 0}}</view>
+      <view class="label">总点名</view>
+    </view>
+    <view class="stat">
+      <view class="num">{{stats.max_score || 0}}</view>
+      <view class="label">最高分</view>
+    </view>
+  </view>
+
+  <!-- 柱状图 -->
+  <view class="card">
+    <view class="title">📊 Top {{list.length}} 积分 & 点名次数</view>
+    <canvas type="2d" id="chart" class="chart-canvas"></canvas>
+    <view class="legend">
+      <text class="dot dot-score"></text>积分
+      <text class="dot dot-roll legend-2"></text>点名次数
+    </view>
+    <view wx:if="{{!list.length}}" class="empty">暂无数据，先去点名吧</view>
+  </view>
+
+  <!-- 排行列表 -->
+  <view class="card">
+    <view class="title">🏆 排行榜 Top {{list.length}}</view>
+    <view class="row" wx:for="{{list}}" wx:key="student_no">
+      <view class="rank">{{index < 3 ? medals[index] : index + 1}}</view>
+      <view class="info">
+        <view class="nm">{{item.name}}<text class="no">（{{item.student_no}}）</text></view>
+        <view class="sub">{{item.major}} · 被点 {{item.roll_count}} 次</view>
+      </view>
+      <view class="sc">{{item.score}} 分</view>
+    </view>
+  </view>
+
+  <view class="big-btn" hover-class="pressed" bindtap="exportExcel">📥 导出积分详单（Excel）</view>
+</view>

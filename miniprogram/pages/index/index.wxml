@@ -1,0 +1,120 @@
+<view class="container">
+  <!-- 顶部横幅 -->
+  <view class="hero">
+    <view class="hero-title">🎓 课堂随机点名</view>
+    <view class="hero-sub">{{mode === 'random' ? '随机模式 · 积分越高越“安全”' : '顺序模式 · 按学号轮流来'}}</view>
+  </view>
+
+  <!-- 模式切换 + 疯狂星期四开关 -->
+  <view class="card">
+    <view class="seg">
+      <view class="seg-item {{mode === 'random' ? 'on' : ''}}" data-mode="random" bindtap="switchMode">🎲 随机点名</view>
+      <view class="seg-item {{mode === 'sequence' ? 'on' : ''}}" data-mode="sequence" bindtap="switchMode">📋 顺序点名</view>
+    </view>
+    <view class="thursday-row">
+      <text class="thursday-label">🍗 疯狂星期四（模拟开关）</text>
+      <van-switch size="22px" checked="{{thursday}}" bind:change="onThursday" />
+    </view>
+  </view>
+
+  <!-- 点名舞台 -->
+  <view class="card stage">
+    <block wx:if="{{picked}}">
+      <view class="badge-row">
+        <view class="badge" wx:if="{{picked.event === 'double'}}">🔥 双倍加分事件</view>
+        <view class="badge" wx:if="{{picked.event === 'lucky'}}">⭐ 幸运星事件</view>
+        <view class="badge" wx:if="{{picked.boosted}}">🍗 疯狂星期四命中</view>
+      </view>
+      <view class="name pop">{{picked.name}}</view>
+      <view class="meta">学号 {{picked.student_no}} · {{picked.major}}</view>
+      <view class="chips">
+        <view class="chip">💰 积分 {{picked.score}}</view>
+        <view class="chip">📣 被点 {{picked.roll_count}} 次</view>
+        <view class="chip" wx:if="{{picked.transfer_tokens > 0}}">↗️ 转移权 x{{picked.transfer_tokens}}</view>
+        <view class="chip" wx:if="{{picked.free_card > 0}}">🎫 免点券 x{{picked.free_card}}</view>
+        <view class="chip" wx:if="{{picked.double_card > 0}}">🎴 加倍卡 x{{picked.double_card}}</view>
+      </view>
+
+      <!-- 一次性处置按钮（到场/缺席/免点/转移） -->
+      <view class="actions" wx:if="{{!picked.handled}}">
+        <view class="act primary" bindtap="attendTo">✅ 到场 +{{picked.event === 'double' ? 2 : 1}}</view>
+        <view class="act" bindtap="absentTo">😴 缺席</view>
+        <view class="act" wx:if="{{picked.free_card > 0}}" bindtap="useFreeCard">🎫 用免点券</view>
+        <view class="act" wx:if="{{picked.transfer_tokens > 0}}" bindtap="openTransfer">↗️ 转移给他人</view>
+      </view>
+      <view class="actions">
+        <view class="act score-act" bindtap="openScore">✏️ 答题计分</view>
+      </view>
+    </block>
+
+    <block wx:elif="{{rolling}}">
+      <view class="name rolling">{{showName}}</view>
+      <view class="meta">正在抽取…</view>
+    </block>
+
+    <block wx:else>
+      <view class="empty-name">👩‍🏫</view>
+      <view class="meta">先在「名单」页导入学生，再回来点名吧</view>
+    </block>
+  </view>
+
+  <view class="big-btn" hover-class="pressed" bindtap="startRoll">
+    {{rolling ? '🎰 抽取中…' : '🎰 开始点名'}}
+  </view>
+
+  <!-- 答题计分弹层 -->
+  <van-popup show="{{scoreOpen}}" round position="bottom" bind:close="closeScore">
+    <view class="panel">
+      <view class="panel-title">✏️ 答题计分 — {{picked ? picked.name : ''}}</view>
+
+      <view class="group-title">① 能否准确重复提问的问题？</view>
+      <view>
+        <view
+          wx:for="{{repeatOptions}}"
+          wx:key="v"
+          class="opt {{repeat === item.v ? 'sel' : ''}}"
+          data-v="{{item.v}}"
+          bindtap="setRepeat"
+        >{{item.label}}</view>
+      </view>
+
+      <view class="group-title">② 回答问题得分（视情况 +0.5 ~ +3）</view>
+      <view>
+        <view
+          wx:for="{{answerOptions}}"
+          wx:key="*this"
+          class="opt {{answer === item ? 'sel' : ''}}"
+          data-v="{{item}}"
+          bindtap="setAnswer"
+        >{{item === 0 ? '答错 / 不答 (0)' : '+' + item}}</view>
+      </view>
+
+      <view wx:if="{{picked && picked.double_card > 0}}">
+        <view class="group-title">③ 道具</view>
+        <view class="opt {{useDoubleCard ? 'sel' : ''}}" bindtap="toggleDoubleCard">🎴 使用加倍卡（得分 x2）</view>
+      </view>
+
+      <view class="sub-hint" wx:if="{{picked && picked.event === 'double'}}">🔥 双倍事件生效中：本次得分 x2</view>
+      <view class="sub-hint" wx:if="{{picked && picked.event === 'lucky'}}">⭐ 幸运星生效中：正分额外 +0.5</view>
+
+      <view class="panel-btn" bindtap="submitScore">确认计分</view>
+    </view>
+  </van-popup>
+
+  <!-- 转移弹层 -->
+  <van-popup show="{{transferOpen}}" round position="bottom" bind:close="closeTransfer">
+    <view class="panel">
+      <view class="panel-title">↗️ 转移给哪位同学？（消耗 1 次转移权）</view>
+      <scroll-view scroll-y class="pick-list">
+        <view
+          wx:for="{{students}}"
+          wx:key="student_no"
+          wx:if="{{picked && item.student_no !== picked.student_no}}"
+          class="opt pick-item"
+          data-no="{{item.student_no}}"
+          bindtap="doTransfer"
+        >{{item.name}}（{{item.student_no}}）</view>
+      </scroll-view>
+    </view>
+  </van-popup>
+</view>

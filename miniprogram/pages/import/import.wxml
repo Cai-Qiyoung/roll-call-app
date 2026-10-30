@@ -1,0 +1,34 @@
+<view class="container">
+  <!-- 操作区 -->
+  <view class="hero">
+    <view class="hero-title">📋 学生名单</view>
+    <view class="hero-sub">共 {{students.length}} 人 · 支持 Excel / CSV</view>
+  </view>
+
+  <view class="ops">
+    <view class="op-btn" bindtap="chooseFile">📥 选择文件导入</view>
+    <view class="op-btn light" bindtap="downloadTemplate">🗒️ 下载模板</view>
+  </view>
+
+  <!-- 名单列表（左滑删除） -->
+  <van-cell-group inset wx:if="{{students.length}}">
+    <van-swipe-cell
+      wx:for="{{students}}"
+      wx:key="student_no"
+      right-width="{{65}}"
+    >
+      <van-cell title="{{item.name}}" label="学号 {{item.student_no}}">
+        <view slot="value" class="cell-value">{{item.major}}</view>
+      </van-cell>
+      <view slot="right" class="del-btn" data-no="{{item.student_no}}" bindtap="onDelete">删除</view>
+    </van-swipe-cell>
+  </van-cell-group>
+
+  <view wx:if="{{!students.length}}" class="empty card">
+    <view class="empty-emoji">📭</view>
+    <view>名单还是空的</view>
+    <view class="empty-sub">点「选择文件导入」，或先下载模板按格式填好</view>
+  </view>
+
+  <view class="danger-btn" bindtap="clearAll" wx:if="{{students.length}}">🗑️ 清空名单与记录</view>
+</view>

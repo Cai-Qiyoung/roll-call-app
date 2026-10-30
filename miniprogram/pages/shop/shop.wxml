@@ -1,0 +1,63 @@
+<view class="container">
+  <!-- 钱包卡片 -->
+  <view class="wallet card" wx:if="{{wallet}}">
+    <view class="w-top">
+      <view class="w-name">{{wallet.name}}<text class="w-no">（{{wallet.student_no}}）</text></view>
+      <view class="switch-btn" bindtap="openPicker">切换学生</view>
+    </view>
+    <view class="w-score">{{wallet.score}}<text class="w-unit"> 分</text></view>
+    <view class="w-chips">
+      <view class="chip">🎫 免点券 x{{wallet.free_card}}</view>
+      <view class="chip">🎴 加倍卡 x{{wallet.double_card}}</view>
+      <view class="chip">↗️ 转移权 x{{wallet.transfer_tokens}}</view>
+    </view>
+  </view>
+
+  <view class="wallet card empty-wallet" wx:else bindtap="openPicker">
+    <view class="w-name">👤 请先选择学生</view>
+    <view class="w-sub">点击这里，选择要为其兑换道具的同学</view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="card item" wx:for="{{items}}" wx:key="code">
+    <view class="i-emoji">{{index === 0 ? '🎫' : '🎴'}}</view>
+    <view class="i-info">
+      <view class="i-name">{{item.name}}</view>
+      <view class="i-desc">{{item.desc}}</view>
+    </view>
+    <view class="i-right">
+      <view class="i-cost">{{item.cost}} 分</view>
+      <view
+        class="i-btn {{wallet && wallet.score >= item.cost ? '' : 'disabled'}}"
+        data-code="{{item.code}}"
+        bindtap="exchange"
+      >兑换</view>
+    </view>
+  </view>
+
+  <!-- 玩法说明 -->
+  <view class="card tips">
+    <view class="t-title">💡 积分小课堂</view>
+    <view class="t-row">· 到场 +1 分；重复提问正确 +0.5 / 错误 -1</view>
+    <view class="t-row">· 回答问题 +0.5 ~ +3 分</view>
+    <view class="t-row">· 🔥 双倍事件 / 🍗 疯狂星期四会触发加成</view>
+    <view class="t-row">· 积分越高，被随机点到的概率越低哦</view>
+  </view>
+
+  <!-- 学生选择弹层 -->
+  <van-popup show="{{pickerOpen}}" round position="bottom" bind:close="closePicker">
+    <view class="panel">
+      <view class="panel-title">选择学生</view>
+      <scroll-view scroll-y class="pick-list">
+        <view
+          wx:for="{{students}}"
+          wx:key="student_no"
+          class="opt pick-item"
+          data-no="{{item.student_no}}"
+          bindtap="selectStudent"
+        >{{item.name}}（{{item.student_no}}）· {{item.score}} 分</view>
+        <view wx:if="{{!students.length}}" class="no-data">暂无学生，请先到「名单」页导入</view>
+      </scroll-view>
+    </view>
+  </van-popup>
+</view>
