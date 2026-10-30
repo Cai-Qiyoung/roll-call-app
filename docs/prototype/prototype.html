@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>课堂随机点名系统 · 交互原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #ece9f4; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft Yahei", sans-serif; }
+  .desk { display: flex; flex-wrap: wrap; gap: 48px; padding: 48px; }
+
+  /* 手机壳 */
+  .phone {
+    width: 375px; height: 812px; background: #fff6ec; border-radius: 44px;
+    border: 10px solid #2b2b33; box-shadow: 0 24px 60px rgba(40,30,80,.25);
+    overflow: hidden; position: relative; display: flex; flex-direction: column;
+  }
+  .statusbar { background: #ff6b35; color: #fff; display: flex; justify-content: space-between;
+    padding: 10px 22px 6px; font-size: 12px; font-weight: 600; }
+  .navbar { background: #ff6b35; color: #fff; text-align: center; font-size: 16px; font-weight: 600; padding: 8px 0 12px; }
+  .content { flex: 1; overflow: hidden; padding: 12px 14px 4px; }
+  .tabbar { background: #fff; display: flex; border-top: 1px solid #f0ebe5; }
+  .tab { flex: 1; text-align: center; font-size: 11px; color: #9b9b9b; padding: 8px 0 10px; }
+  .tab.on { color: #ff6b35; font-weight: 700; }
+
+  .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 5px 15px rgba(255,107,53,.08); margin-bottom: 12px; }
+  .chip { display: inline-block; background: #fff3e9; color: #ff6b35; border-radius: 12px; padding: 3px 10px; font-size: 11px; margin: 4px 3px 0 0; }
+  .big-btn { margin-top: 10px; text-align: center; background: linear-gradient(135deg,#7c4dff,#536dfe); color: #fff;
+    border-radius: 28px; padding: 15px 0; font-size: 17px; font-weight: 600; box-shadow: 0 6px 15px rgba(124,77,255,.35); cursor: pointer; }
+
+  /* 点名页 */
+  .hero { background: linear-gradient(135deg,#ff9a3c,#ff5f6d); border-radius: 16px; padding: 22px 20px; color: #fff;
+    box-shadow: 0 8px 20px rgba(255,107,53,.35); margin-bottom: 12px; }
+  .hero-title { font-size: 21px; font-weight: 700; }
+  .hero-sub { opacity: .92; font-size: 13px; margin-top: 6px; }
+  .seg { display: flex; background: #ffe8d6; border-radius: 22px; padding: 4px; }
+  .seg-item { flex: 1; text-align: center; padding: 8px 0; border-radius: 18px; color: #b26a3f; font-size: 14px; cursor: pointer; }
+  .seg-item.on { background: linear-gradient(135deg,#ff9a3c,#ff5f6d); color: #fff; font-weight: 600; box-shadow: 0 3px 8px rgba(255,107,53,.4); }
+  .thursday-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 13px; color: #666; }
+  .switch { width: 44px; height: 24px; border-radius: 12px; background: #e5e0da; position: relative; cursor: pointer; transition: .2s; }
+  .switch.on { background: #ff9a3c; }
+  .switch .dot { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: .2s; }
+  .switch.on .dot { left: 22px; }
+  .stage { text-align: center; padding: 24px 16px; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+  .badge { display: inline-block; background: #fff3e0; color: #ff6b35; border: 1px solid #ffd9b3; border-radius: 12px;
+    padding: 3px 10px; font-size: 12px; margin: 0 4px 10px; }
+  .name { font-size: 42px; font-weight: 800; color: #ff5f6d; margin: 8px 0 4px; }
+  .name.rolling { animation: bounce .18s linear infinite; }
+  @keyframes bounce { 50% { transform: scale(1.08); } }
+  .meta { font-size: 13px; color: #999; }
+  .act { display: inline-block; padding: 8px 14px; background: #f5f0ff; color: #7c4dff; border-radius: 20px; font-size: 13px; margin: 5px; cursor: pointer; font-weight: 500; }
+  .act.primary { background: linear-gradient(135deg,#ff9a3c,#ff5f6d); color: #fff; box-shadow: 0 4px 10px rgba(255,107,53,.35); }
+  .act.teal { background: linear-gradient(135deg,#00c2a8,#00a3c2); color: #fff; }
+  .toast { position: absolute; left: 50%; bottom: 110px; transform: translateX(-50%) translateY(20px); background: rgba(30,25,40,.85);
+    color: #fff; font-size: 13px; padding: 9px 18px; border-radius: 20px; opacity: 0; transition: .25s; z-index: 30; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* 弹层 */
+  .popup { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 20px 20px 0 0;
+    padding: 20px 16px 30px; z-index: 20; transform: translateY(105%); transition: .28s; box-shadow: 0 -10px 40px rgba(0,0,0,.15); }
+  .popup.open { transform: translateY(0); }
+  .mask { position: absolute; inset: 0; background: rgba(20,15,30,.4); z-index: 19; opacity: 0; pointer-events: none; transition: .2s; }
+  .mask.open { opacity: 1; pointer-events: auto; }
+  .panel-title { font-size: 17px; font-weight: 700; color: #333; margin-bottom: 12px; }
+  .group-title { font-size: 13px; color: #999; margin: 14px 0 8px; }
+  .opt { display: inline-block; padding: 7px 13px; border-radius: 16px; background: #f5f5f5; color: #666; font-size: 13px; margin: 0 6px 8px 0; cursor: pointer; border: 1px solid transparent; }
+  .opt.sel { background: #fff3e9; color: #ff6b35; border-color: #ff9a3c; font-weight: 600; }
+  .sub-hint { margin-top: 10px; font-size: 12px; color: #ff6b35; background: #fff3e9; border-radius: 8px; padding: 6px 10px; }
+  .panel-btn { margin-top: 18px; text-align: center; background: linear-gradient(135deg,#ff9a3c,#ff5f6d); color: #fff;
+    border-radius: 22px; padding: 12px 0; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+  /* 排名页 */
+  .stats { display: flex; gap: 10px; margin-bottom: 12px; }
+  .stat { flex: 1; background: #fff; border-radius: 12px; padding: 14px 0; text-align: center; box-shadow: 0 5px 15px rgba(255,107,53,.08); }
+  .stat .num { font-size: 22px; font-weight: 700; color: #ff6b35; }
+  .stat .label { font-size: 12px; color: #999; margin-top: 3px; }
+  .title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 10px; }
+  .chart { height: 150px; position: relative; border-bottom: 2px solid #d9d2c8; margin-bottom: 6px; }
+  .chart .bars { display: flex; align-items: flex-end; justify-content: space-around; height: 100%; padding-top: 20px; }
+  .g { display: flex; align-items: flex-end; gap: 3px; height: 100%; position: relative; }
+  .bar { width: 11px; border-radius: 3px 3px 0 0; }
+  .bar.score { background: #ff9a3c; }
+  .bar.roll { background: #7c4dff; }
+  .glabel { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%) rotate(-55deg); font-size: 9px; color: #8a8078; white-space: nowrap; }
+  .gvalon { position: absolute; left: 50%; transform: translateX(-50%); font-size: 9px; color: #8a8078; white-space: nowrap; top: 6px; }
+  .legend { text-align: center; font-size: 12px; color: #999; margin-top: 24px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin: 0 6px 0 14px; }
+  .row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid #f7f3ee; }
+  .rank { width: 36px; font-size: 18px; text-align: center; }
+  .info { flex: 1; }
+  .nm { font-size: 15px; font-weight: 600; }
+  .no { font-size: 12px; color: #999; font-weight: 400; margin-left: 4px; }
+  .sub { font-size: 12px; color: #b0a8a0; margin-top: 2px; }
+  .sc { font-size: 15px; font-weight: 700; color: #ff6b35; }
+
+  /* 名单页 */
+  .hero.teal { background: linear-gradient(135deg,#00c2a8,#00a3c2); box-shadow: 0 8px 20px rgba(0,162,194,.3); }
+  .ops { display: flex; gap: 10px; margin-bottom: 12px; }
+  .op-btn { flex: 1; text-align: center; background: linear-gradient(135deg,#ff9a3c,#ff5f6d); color: #fff; border-radius: 22px; padding: 12px 0; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .op-btn.light { background: #fff; color: #ff6b35; border: 1px solid #ffd9b3; }
+  .srow { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f7f3ee; background: #fff; }
+  .sinfo { flex: 1; }
+  .sname { font-size: 15px; font-weight: 600; }
+  .smeta { font-size: 12px; color: #999; }
+  .smajor { font-size: 12px; color: #00a3c2; }
+
+  /* 商店页 */
+  .wallet { background: linear-gradient(135deg,#7c4dff,#536dfe); color: #fff; border-radius: 14px; padding: 18px 16px;
+    box-shadow: 0 7px 18px rgba(124,77,255,.35); margin-bottom: 12px; }
+  .w-top { display: flex; align-items: center; justify-content: space-between; }
+  .w-name { font-size: 16px; font-weight: 700; }
+  .w-no { font-size: 12px; font-weight: 400; opacity: .85; }
+  .switch-btn { background: rgba(255,255,255,.22); border-radius: 14px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+  .w-score { font-size: 40px; font-weight: 800; margin: 10px 0 4px; }
+  .w-unit { font-size: 14px; font-weight: 400; }
+  .wallet .chip { background: rgba(255,255,255,.2); color: #fff; }
+  .item { display: flex; align-items: center; }
+  .i-emoji { font-size: 32px; margin-right: 12px; }
+  .i-info { flex: 1; }
+  .i-name { font-size: 16px; font-weight: 700; }
+  .i-desc { font-size: 12px; color: #999; margin-top: 3px; }
+  .i-cost { font-size: 14px; font-weight: 700; color: #ff6b35; text-align: center; }
+  .i-btn { background: linear-gradient(135deg,#ff9a3c,#ff5f6d); color: #fff; border-radius: 16px; padding: 6px 18px;
+    font-size: 13px; font-weight: 600; margin-top: 5px; cursor: pointer; text-align: center; }
+  .i-btn.disabled { background: #e5e0da; color: #b0a8a0; }
+  .t-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .t-row { font-size: 12px; color: #666; line-height: 22px; }
+</style>
+</head>
+<body>
+<div class="desk">
+
+  <!-- ============ P1 点名页 ============ -->
+  <section class="phone" id="p1">
+    <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="navbar">趣味点名</div>
+    <div class="content">
+      <div class="hero">
+        <div class="hero-title">🎓 课堂随机点名</div>
+        <div class="hero-sub">随机模式 · 积分越高越“安全”</div>
+      </div>
+      <div class="card">
+        <div class="seg">
+          <div class="seg-item on" id="seg-random">🎲 随机点名</div>
+          <div class="seg-item" id="seg-seq">📋 顺序点名</div>
+        </div>
+        <div class="thursday-row">
+          <span>🍗 疯狂星期四（模拟开关）</span>
+          <div class="switch on" id="th-switch"><div class="dot"></div></div>
+        </div>
+      </div>
+      <div class="card stage">
+        <div>
+          <span class="badge" id="badge">🔥 双倍加分事件</span>
+        </div>
+        <div class="name" id="stage-name">周杰</div>
+        <div class="meta">学号 20241009 · 软件工程</div>
+        <div style="margin-top:12px">
+          <span class="chip">💰 积分 8</span>
+          <span class="chip">📣 被点 2 次</span>
+          <span class="chip">↗️ 转移权 x1</span>
+          <span class="chip">🎫 免点券 x1</span>
+        </div>
+        <div style="margin-top:14px">
+          <span class="act primary" id="btn-attend">✅ 到场 +2</span>
+          <span class="act" id="btn-absent">😴 缺席</span>
+          <span class="act" id="btn-free">🎫 用免点券</span>
+          <span class="act" id="btn-transfer">↗️ 转移给他人</span>
+          <span class="act teal" id="btn-score">✏️ 答题计分</span>
+        </div>
+      </div>
+      <div class="big-btn" id="btn-roll">🎰 开始点名</div>
+    </div>
+    <div class="mask" id="mask"></div>
+    <div class="popup" id="popup">
+      <div class="panel-title">✏️ 答题计分 — <span id="pop-name">周杰</span></div>
+      <div class="group-title">① 能否准确重复提问的问题？</div>
+      <div>
+        <span class="opt sel" data-r="0.5">准确重复 +0.5</span>
+        <span class="opt" data-r="-1">未能重复 -1</span>
+        <span class="opt" data-r="0">不适用</span>
+      </div>
+      <div class="group-title">② 回答问题得分（视情况 +0.5 ~ +3）</div>
+      <div id="answer-opts">
+        <span class="opt" data-a="0.5">+0.5</span>
+        <span class="opt" data-a="1">+1</span>
+        <span class="opt sel" data-a="2.5">+2.5</span>
+        <span class="opt" data-a="3">+3</span>
+        <span class="opt" data-a="0">答错 / 不答</span>
+      </div>
+      <div class="group-title">③ 道具</div>
+      <div><span class="opt" id="double-card-opt">🎴 使用加倍卡（得分 x2）</span></div>
+      <div class="sub-hint">🔥 双倍事件生效中：本次得分 x2</div>
+      <div class="panel-btn" id="btn-submit">确认计分</div>
+    </div>
+    <div class="tabbar">
+      <div class="tab on">点名</div><div class="tab">排名</div><div class="tab">名单</div><div class="tab">商店</div>
+    </div>
+    <div class="toast" id="toast">到场 +1</div>
+  </section>
+
+  <!-- ============ P2 排名页 ============ -->
+  <section class="phone" id="p2">
+    <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="navbar">积分排名</div>
+    <div class="content">
+      <div class="stats">
+        <div class="stat"><div class="num">14</div><div class="label">总人数</div></div>
+        <div class="stat"><div class="num">17</div><div class="label">总点名</div></div>
+        <div class="stat"><div class="num">8.0</div><div class="label">最高分</div></div>
+      </div>
+      <div class="card">
+        <div class="title">📊 Top 10 积分 &amp; 点名次数</div>
+        <div class="chart"><div class="bars" id="chart-bars"></div></div>
+        <div class="legend"><span class="dot" style="background:#ff9a3c"></span>积分<span class="dot" style="background:#7c4dff"></span>点名次数</div>
+      </div>
+      <div class="card">
+        <div class="title">🏆 排行榜 Top 3</div>
+        <div class="row"><div class="rank">🥇</div><div class="info"><div class="nm">周杰<span class="no">（20241009）</span></div><div class="sub">软件工程 · 被点 2 次</div></div><div class="sc">8 分</div></div>
+        <div class="row"><div class="rank">🥈</div><div class="info"><div class="nm">李娜<span class="no">（20241003）</span></div><div class="sub">软件工程 · 被点 3 次</div></div><div class="sc">3.5 分</div></div>
+        <div class="row"><div class="rank">🥉</div><div class="info"><div class="nm">杨帆<span class="no">（20241006）</span></div><div class="sub">软件工程 · 被点 2 次</div></div><div class="sc">2.5 分</div></div>
+      </div>
+      <div class="big-btn">📥 导出积分详单（Excel）</div>
+    </div>
+    <div class="tabbar">
+      <div class="tab">点名</div><div class="tab on">排名</div><div class="tab">名单</div><div class="tab">商店</div>
+    </div>
+  </section>
+
+  <!-- ============ P3 名单页 ============ -->
+  <section class="phone" id="p3">
+    <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="navbar">学生名单</div>
+    <div class="content">
+      <div class="hero teal">
+        <div class="hero-title">📋 学生名单</div>
+        <div class="hero-sub">共 14 人 · 支持 Excel / CSV</div>
+      </div>
+      <div class="ops">
+        <div class="op-btn">📥 选择文件导入</div>
+        <div class="op-btn light">🗒️ 下载模板</div>
+      </div>
+      <div class="card" style="padding:0">
+        <div class="srow"><div class="sinfo"><div class="sname">张伟</div><div class="smeta">学号 20241001</div></div><div class="smajor">软件工程</div></div>
+        <div class="srow"><div class="sinfo"><div class="sname">王芳</div><div class="smeta">学号 20241002</div></div><div class="smajor">软件工程</div></div>
+        <div class="srow"><div class="sinfo"><div class="sname">李娜</div><div class="smeta">学号 20241003</div></div><div class="smajor">软件工程</div></div>
+        <div class="srow"><div class="sinfo"><div class="sname">刘洋</div><div class="smeta">学号 20241004</div></div><div class="smajor">软件工程</div></div>
+        <div class="srow"><div class="sinfo"><div class="sname">陈静</div><div class="smeta">学号 20241005</div></div><div class="smajor">软件工程</div></div>
+        <div class="srow"><div class="sinfo"><div class="sname">杨帆</div><div class="smeta">学号 20241006</div></div><div class="smajor">软件工程</div></div>
+        <div class="srow"><div class="sinfo"><div class="sname">赵磊</div><div class="smeta">学号 20241007</div></div><div class="smajor">软件工程</div></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab">点名</div><div class="tab">排名</div><div class="tab on">名单</div><div class="tab">商店</div>
+    </div>
+  </section>
+
+  <!-- ============ P4 商店页 ============ -->
+  <section class="phone" id="p4">
+    <div class="statusbar"><span>9:41</span><span>📶 🔋</span></div>
+    <div class="navbar">积分商店</div>
+    <div class="content">
+      <div class="wallet">
+        <div class="w-top">
+          <div class="w-name">周杰 <span class="w-no">（20241009）</span></div>
+          <div class="switch-btn" id="btn-switch-student">切换学生</div>
+        </div>
+        <div class="w-score" id="wallet-score">8 <span class="w-unit">分</span></div>
+        <div>
+          <span class="chip" id="wc-free">🎫 免点券 x1</span>
+          <span class="chip" id="wc-double">🎴 加倍卡 x0</span>
+          <span class="chip">↗️ 转移权 x1</span>
+        </div>
+      </div>
+      <div class="card item">
+        <div class="i-emoji">🎫</div>
+        <div class="i-info"><div class="i-name">免点券</div><div class="i-desc">被点名时可直接豁免本轮</div></div>
+        <div><div class="i-cost">30 分</div><div class="i-btn disabled" id="buy-free">兑换</div></div>
+      </div>
+      <div class="card item">
+        <div class="i-emoji">🎴</div>
+        <div class="i-info"><div class="i-name">加倍卡</div><div class="i-desc">回答问题得分 x2</div></div>
+        <div><div class="i-cost">20 分</div><div class="i-btn disabled" id="buy-double">兑换</div></div>
+      </div>
+      <div class="card">
+        <div class="t-title">💡 积分小课堂</div>
+        <div class="t-row">· 到场 +1 分；重复提问正确 +0.5 / 错误 -1</div>
+        <div class="t-row">· 回答问题 +0.5 ~ +3 分</div>
+        <div class="t-row">· 🔥 双倍事件 / 🍗 疯狂星期四会触发加成</div>
+        <div class="t-row">· 积分越高，被随机点到的概率越低哦</div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab">点名</div><div class="tab">排名</div><div class="tab">名单</div><div class="tab on">商店</div>
+    </div>
+    <div class="toast" id="toast4">兑换成功</div>
+  </section>
+
+</div>
+
+<script>
+// ===== 通用 toast =====
+function toast(t) {
+  const el = document.getElementById(t.id || 'toast');
+  el.textContent = t.text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+// ===== P1 点名页交互 =====
+var names = ['张伟','王芳','李娜','刘洋','陈静','杨帆','赵磊','黄敏','周杰','吴倩','徐强','孙丽','马超','朱婷'];
+var events = [{t:'🔥 双倍加分事件',a:2},{t:'⭐ 幸运星事件',a:1},{t:'',a:1}];
+document.getElementById('btn-roll').addEventListener('click', function () {
+  var nameEl = document.getElementById('stage-name');
+  var btn = this;
+  btn.textContent = '🎰 抽取中…';
+  nameEl.classList.add('rolling');
+  var i = 0;
+  var timer = setInterval(function () {
+    nameEl.textContent = names[Math.floor(Math.random() * names.length)];
+    if (++i >= 24) {
+      clearInterval(timer);
+      nameEl.classList.remove('rolling');
+      var e = events[Math.floor(Math.random() * events.length)];
+      document.getElementById('badge').textContent = e.t;
+      document.getElementById('badge').style.display = e.t ? 'inline-block' : 'none';
+      document.getElementById('btn-attend').textContent = '✅ 到场 +' + e.a;
+      btn.textContent = '🎰 开始点名';
+    }
+  }, 60);
+});
+
+// 模式切换
+document.getElementById('seg-random').addEventListener('click', function () {
+  this.classList.add('on'); document.getElementById('seg-seq').classList.remove('on');
+});
+document.getElementById('seg-seq').addEventListener('click', function () {
+  this.classList.add('on'); document.getElementById('seg-random').classList.remove('on');
+});
+
+// 疯狂星期四开关
+document.getElementById('th-switch').addEventListener('click', function () {
+  this.classList.toggle('on');
+});
+
+// 答题弹层
+document.getElementById('btn-score').addEventListener('click', function () {
+  document.getElementById('popup').classList.add('open');
+  document.getElementById('mask').classList.add('open');
+});
+document.getElementById('mask').addEventListener('click', function () {
+  document.getElementById('popup').classList.remove('open');
+  this.classList.remove('open');
+});
+document.getElementById('popup').addEventListener('click', function (e) {
+  if (e.target.classList.contains('opt') && e.target.dataset.r !== undefined) {
+    this.querySelectorAll('[data-r]').forEach(o => o.classList.remove('sel'));
+    e.target.classList.add('sel');
+  }
+  if (e.target.dataset.a !== undefined) {
+    this.querySelectorAll('#answer-opts .opt').forEach(o => o.classList.remove('sel'));
+    e.target.classList.add('sel');
+  }
+  if (e.target.id === 'double-card-opt') e.target.classList.toggle('sel');
+});
+document.getElementById('btn-submit').addEventListener('click', function () {
+  document.getElementById('popup').classList.remove('open');
+  document.getElementById('mask').classList.remove('open');
+  toast({ id: 'toast', text: '本次 +2.5（当前 8 分）' });
+});
+
+// ===== P4 商店页交互：先给钱包充点分演示兑换 =====
+document.getElementById('buy-free').addEventListener('click', function () {
+  toast({ id: 'toast4', text: '积分不足（需要 30 分）' });
+});
+document.getElementById('buy-double').addEventListener('click', function () {
+  toast({ id: 'toast4', text: '积分不足（需要 20 分）' });
+});
+
+// ===== P2 柱状图（用 div 模拟 Canvas 双系列柱状图） =====
+(function () {
+  var data = [
+    { name: '周杰', score: 8, roll: 2 }, { name: '李娜', score: 3.5, roll: 3 },
+    { name: '杨帆', score: 2.5, roll: 2 }, { name: '王芳', score: 2, roll: 3 },
+    { name: '赵磊', score: 2, roll: 1 }, { name: '吴倩', score: 2, roll: 1 },
+    { name: '张伟', score: 1, roll: 2 }, { name: '黄敏', score: 1, roll: 1 },
+    { name: '徐强', score: 0, roll: 0 }, { name: '孙丽', score: 0, roll: 0 }
+  ];
+  var max = 8, h = 130;
+  var wrap = document.getElementById('chart-bars');
+  wrap.innerHTML = data.map(function (d) {
+    var sh = Math.max(2, d.score / max * h), rh = Math.max(2, d.roll / max * h * 4);
+    return '<div class="g"><div class="bar score" style="height:' + sh + 'px"></div>' +
+      '<div class="bar roll" style="height:' + rh + 'px"></div>' +
+      '<div class="gvalon">' + d.score + ' ' + d.roll + '</div>' +
+      '<div class="glabel">' + d.name + '</div></div>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

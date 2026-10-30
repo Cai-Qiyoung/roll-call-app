@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>图表：类图 · 流程图 · 性能分析</title>
+<style>
+  body { background: #ece9f4; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft Yahei", sans-serif; margin: 0; }
+  .diagram { background: #fff; margin: 28px auto; padding: 30px; width: max-content; min-width: 820px; border-radius: 16px; box-shadow: 0 8px 28px rgba(40,30,80,.12); }
+  .d-title { font-size: 20px; font-weight: 700; color: #333; padding: 4px 8px 12px; border-left: 6px solid #ff6b35; margin-bottom: 6px; }
+  svg text { font-family: -apple-system, "PingFang SC", "Microsoft Yahei", sans-serif; }
+  .cls-box { stroke: #333; }
+</style>
+</head>
+<body>
+
+<!-- ================= 类图 ================= -->
+<div class="diagram" id="d1">
+  <div class="d-title">系统类图：后端数据模型与分层模块</div>
+  <svg width="760" height="660" viewBox="0 0 760 660">
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 z" fill="#666"/>
+      </marker>
+      <marker id="arrd" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+        <path d="M0,0 L8,4 L0,8 z" fill="#00a3c2"/>
+      </marker>
+    </defs>
+
+    <!-- 模型层分组 -->
+    <rect x="20" y="44" width="290" height="580" fill="#faf7ff" stroke="#7c4dff" stroke-dasharray="6 4" rx="10"/>
+    <text x="32" y="70" font-size="15" font-weight="700" fill="#7c4dff">数据模型层（SQLAlchemy）</text>
+
+    <!-- Student -->
+    <rect class="cls-box" x="44" y="92" width="242" height="196" fill="#fff" rx="6"/>
+    <rect x="44" y="92" width="242" height="28" fill="#7c4dff" rx="6"/>
+    <rect x="44" y="112" width="242" height="8" fill="#7c4dff"/>
+    <text x="165" y="111" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">Student 学生</text>
+    <g font-size="12.5" fill="#333">
+      <text x="58" y="148">+ student_no: str（学号）</text>
+      <text x="58" y="165">+ name: str（姓名）</text>
+      <text x="58" y="182">+ major: str（专业）</text>
+      <text x="58" y="199">+ score: float（总积分）</text>
+      <text x="58" y="216">+ roll_count: int（被点次数）</text>
+      <text x="58" y="233">+ total_rolled: int（累计被抽中）</text>
+      <text x="58" y="250">+ transfer_tokens: int（转移权）</text>
+      <text x="58" y="267">+ free_card / double_card（道具）</text>
+    </g>
+    <text x="58" y="286" font-size="10.5" fill="#999">— 字段均有默认值，导入即建行 —</text>
+
+    <!-- RollRecord -->
+    <rect class="cls-box" x="44" y="316" width="242" height="208" fill="#fff" rx="6"/>
+    <rect x="44" y="316" width="242" height="26" fill="#7c4dff" rx="6"/>
+    <rect x="44" y="334" width="242" height="8" fill="#7c4dff"/>
+    <text x="165" y="334" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">RollRecord 点名流水</text>
+    <g font-size="12.5" fill="#333">
+      <text x="58" y="368">+ student_id: FK 外键</text>
+      <text x="58" y="385">+ mode: random | sequence</text>
+      <text x="58" y="402">+ kind: attend / answer / …</text>
+      <text x="58" y="419">+ question: str（提问内容）</text>
+      <text x="58" y="436">+ delta: float（积分变化）</text>
+      <text x="58" y="453">+ event: double | lucky</text>
+      <text x="58" y="470">+ remark: str（备注）</text>
+      <text x="58" y="487">+ created_at: datetime</text>
+    </g>
+    <text x="58" y="510" font-size="10.5" fill="#999">— 积分明细与复盘全由本表驱动 —</text>
+
+    <!-- AppState -->
+    <rect class="cls-box" x="44" y="546" width="242" height="64" fill="#fff" rx="6"/>
+    <rect x="44" y="546" width="242" height="22" fill="#7c4dff" rx="6"/>
+    <rect x="44" y="560" width="242" height="8" fill="#7c4dff"/>
+    <text x="165" y="562" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">AppState 键值状态</text>
+    <text x="58" y="598" font-size="12.5" fill="#333">+ key: PK · + value: str（顺序游标）</text>
+
+    <!-- 路由层 -->
+    <rect class="cls-box" x="340" y="92" width="400" height="170" fill="#f0fcfa" rx="6"/>
+    <rect x="340" y="92" width="190" height="26" fill="#00a3c2" rx="6"/>
+    <text x="435" y="109" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">FastAPI 路由层</text>
+    <g font-size="12" fill="#333">
+      <text x="356" y="140">rollcall：POST /random（加权随机）· /sequence</text>
+      <text x="356" y="158">　　　　 · /confirm（到场）· /transfer（转移）· /score（计分）</text>
+      <text x="356" y="178">students：POST /import（Excel）· GET /template · 删除 / 清空</text>
+      <text x="356" y="198">ranking：GET /top · /stats · /export（xlsx 详单）</text>
+      <text x="356" y="218">shop：GET /items · 钱包查询 · POST /exchange</text>
+      <text x="356" y="238">auth：POST /login（微信 code2session，预留）</text>
+    </g>
+
+    <!-- 前端层 -->
+    <rect class="cls-box" x="340" y="320" width="400" height="150" fill="#fff5ef" rx="6"/>
+    <rect x="340" y="320" width="210" height="26" fill="#ff6b35" rx="6"/>
+    <text x="445" y="337" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">小程序前端层（原生）</text>
+    <g font-size="12" fill="#333">
+      <text x="356" y="368">pages/index 点名页：滚动动画 · 到场确认 · 答题弹层 · 转移</text>
+      <text x="356" y="388">pages/ranking 排名页：Canvas 柱状图 · 详单导出</text>
+      <text x="356" y="408">pages/import 名单页：Excel/CSV 导入 · 模板 · 左滑删除</text>
+      <text x="356" y="428">pages/shop 商店页：积分背包 · 兑换道具</text>
+      <text x="356" y="448">utils/api.js：wx.request / uploadFile 统一封装</text>
+    </g>
+
+    <!-- 关系线 -->
+    <line x1="165" y1="288" x2="165" y2="314" stroke="#666" stroke-width="1.6" marker-end="url(#arr)"/>
+    <text x="180" y="298" font-size="12" fill="#666">1</text>
+    <text x="180" y="312" font-size="12" fill="#666">1..*</text>
+
+    <line x1="340" y1="170" x2="288" y2="170" stroke="#00a3c2" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrd)"/>
+    <text x="296" y="184" font-size="11.5" fill="#00a3c2">读写</text>
+
+    <line x1="480" y1="262" x2="480" y2="318" stroke="#ff6b35" stroke-width="1.6" marker-end="url(#arr)"/>
+    <text x="492" y="296" font-size="12" fill="#ff6b35">HTTP / JSON REST API</text>
+  </svg>
+</div>
+
+<!-- ================= 流程图1：随机点名主流程 ================= -->
+<div class="diagram" id="d2">
+  <div class="d-title">算法流程图①：随机点名与积分主流程</div>
+  <svg width="760" height="830" viewBox="0 0 760 830">
+    <defs>
+      <marker id="a1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#555"/></marker>
+    </defs>
+    <g font-size="13.5" fill="#333" text-anchor="middle">
+      <!-- 开始 -->
+      <rect x="300" y="16" width="160" height="44" rx="22" fill="#00c2a8"/>
+      <text x="380" y="44" fill="#fff" font-weight="700">开始：点击「开始点名」</text>
+      <line x1="380" y1="60" x2="380" y2="86" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="300" y="88" width="160" height="44" rx="10" fill="#fff3e9" stroke="#ff9a3c"/>
+      <text x="380" y="115">前端滚动动画 1.4s</text>
+      <line x1="380" y1="132" x2="380" y2="152" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <!-- 承办空判断 -->
+      <polygon points="380,154 468,192 380,230 292,192" fill="#fff" stroke="#ff6b35" stroke-width="1.6"/>
+      <text x="380" y="195">名单为空？</text>
+      <text x="452" y="186" font-size="12" fill="#ee0a24">是</text>
+      <text x="452" y="216" font-size="12" fill="#00a3c2">否</text>
+      <line x1="468" y1="192" x2="556" y2="192" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <line x1="380" y1="230" x2="380" y2="258" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <!-- 空名单分支 -->
+      <rect x="560" y="170" width="164" height="44" rx="10" fill="#ffe9e9" stroke="#ee0a24"/>
+      <text x="642" y="197">提示去「名单」页导入</text>
+      <line x1="642" y1="214" x2="642" y2="240" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <rect x="580" y="242" width="124" height="40" rx="20" fill="#d8d5e8"/>
+      <text x="642" y="267">结束</text>
+
+      <!-- 权重计算 -->
+      <rect x="300" y="260" width="160" height="44" rx="10" fill="#fff3e9" stroke="#ff9a3c"/>
+      <text x="380" y="287">计算权重 w = 1/(1+score)</text>
+      <line x1="380" y1="304" x2="380" y2="324" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <!-- 疯狂星期四判断 -->
+      <polygon points="380,326 468,364 380,402 292,364" fill="#fff" stroke="#ff6b35" stroke-width="1.6"/>
+      <text x="380" y="367">疯狂星期四？</text>
+      <text x="452" y="358" font-size="12" fill="#ee0a24">是</text>
+      <text x="452" y="388" font-size="12" fill="#00a3c2">否</text>
+      <line x1="468" y1="364" x2="540" y2="364" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <line x1="380" y1="402" x2="380" y2="430" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="544" y="342" width="180" height="44" rx="10" fill="#fff3e9" stroke="#ff9a3c"/>
+      <text x="634" y="369">score 为 50 倍数者权重 ×3</text>
+      <path d="M634,386 L634,412 Q634,422 624,422 L412,422 Q402,422 402,432" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#a1)"/>
+
+      <!-- 抽取 -->
+      <rect x="300" y="434" width="160" height="44" rx="10" fill="#eef0ff" stroke="#7c4dff"/>
+      <text x="380" y="461">random.choices 加权抽取</text>
+      <line x1="380" y1="478" x2="380" y2="498" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="300" y="500" width="160" height="56" rx="10" fill="#fff3e9" stroke="#ff9a3c"/>
+      <text x="380" y="524">累计点名次数 roll_count+1</text>
+      <text x="380" y="543">每被点 2 次 → 转移权 +1</text>
+      <line x1="380" y1="556" x2="380" y2="576" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="300" y="578" width="160" height="44" rx="10" fill="#eef0ff" stroke="#7c4dff"/>
+      <text x="380" y="605">随机事件：🔥8% · ⭐8%</text>
+      <line x1="380" y1="622" x2="380" y2="642" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="300" y="644" width="160" height="44" rx="22" fill="#00c2a8"/>
+      <text x="380" y="671" fill="#fff" font-weight="700">展示被点学生 + 事件</text>
+      <line x1="380" y1="688" x2="380" y2="714" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <circle cx="380" cy="732" r="20" fill="#ff6b35" stroke="#fff" stroke-width="3"/>
+      <text x="380" y="738" fill="#fff" font-weight="700">A</text>
+      <text x="380" y="788" font-size="13" fill="#666">A：老师操作 → 到场确认 / 缺席 / 免点券 / 转移 → 答题计分（见流程图②）</text>
+    </g>
+  </svg>
+</div>
+
+<!-- ================= 流程图2：答题计分规则 ================= -->
+<div class="diagram" id="d3">
+  <div class="d-title">算法流程图②：答题计分规则（事件与道具加成）</div>
+  <svg width="760" height="600" viewBox="0 0 760 600">
+    <defs>
+      <marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#555"/></marker>
+    </defs>
+    <g font-size="13.5" fill="#333" text-anchor="middle">
+      <rect x="300" y="18" width="160" height="44" rx="22" fill="#00c2a8"/>
+      <text x="380" y="46" fill="#fff" font-weight="700">开始：输入 delta 与事件</text>
+      <line x1="380" y1="62" x2="380" y2="82" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <polygon points="380,84 468,120 380,156 292,120" fill="#fff" stroke="#ff6b35" stroke-width="1.6"/>
+      <text x="380" y="123">事件 == double？</text>
+      <text x="452" y="114" font-size="12" fill="#ee0a24">是</text>
+      <text x="452" y="140" font-size="12" fill="#00a3c2">否</text>
+      <line x1="468" y1="120" x2="540" y2="120" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <line x1="380" y1="156" x2="380" y2="176" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <rect x="544" y="98" width="150" height="44" rx="10" fill="#fff3e9" stroke="#ff9a3c"/>
+      <text x="619" y="125">delta × 2</text>
+      <path d="M619,142 L619,172 Q619,182 609,182 L412,182 Q402,182 402,192" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#a1)"/>
+
+      <polygon points="380,178 468,214 380,250 292,214" fill="#fff" stroke="#ff6b35" stroke-width="1.6"/>
+      <text x="380" y="217">lucky 且 delta &gt; 0？</text>
+      <text x="452" y="208" font-size="12" fill="#ee0a24">是</text>
+      <text x="452" y="234" font-size="12" fill="#00a3c2">否</text>
+      <line x1="468" y1="214" x2="540" y2="214" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <line x1="380" y1="250" x2="380" y2="270" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <rect x="544" y="192" width="150" height="44" rx="10" fill="#fff3e9" stroke="#ff9a3c"/>
+      <text x="619" y="219">delta + 0.5</text>
+      <path d="M619,236 L619,266 Q619,276 609,276 L412,276 Q402,276 402,286" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#a1)"/>
+
+      <polygon points="380,272 468,308 380,344 292,308" fill="#fff" stroke="#ff6b35" stroke-width="1.6"/>
+      <text x="380" y="311">使用加倍卡？</text>
+      <text x="452" y="302" font-size="12" fill="#ee0a24">是</text>
+      <text x="452" y="328" font-size="12" fill="#00a3c2">否</text>
+      <line x1="468" y1="308" x2="540" y2="308" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <line x1="380" y1="344" x2="380" y2="366" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+      <rect x="544" y="286" width="170" height="44" rx="10" fill="#fff3e9" stroke="#ff9a3c"/>
+      <text x="629" y="313">扣 1 张卡，delta × 2</text>
+      <path d="M629,330 L629,362 Q629,372 619,372 L412,372 Q402,372 402,382" fill="none" stroke="#555" stroke-width="1.5" marker-end="url(#a1)"/>
+
+      <rect x="300" y="384" width="160" height="44" rx="10" fill="#fff3e9" stroke="#ff9a3c"/>
+      <text x="380" y="411">score += delta</text>
+      <line x1="380" y1="428" x2="380" y2="448" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="300" y="450" width="160" height="44" rx="10" fill="#eef0ff" stroke="#7c4dff"/>
+      <text x="380" y="477">写 RollRecord(kind=answer)</text>
+      <line x1="380" y1="494" x2="380" y2="514" stroke="#555" stroke-width="1.6" marker-end="url(#a1)"/>
+
+      <rect x="300" y="516" width="160" height="44" rx="22" fill="#00c2a8"/>
+      <text x="380" y="543" fill="#fff" font-weight="700">结束：返回最新积分</text>
+    </g>
+  </svg>
+</div>
+
+<!-- ================= 性能分析图 ================= -->
+<div class="diagram" id="d4">
+  <div class="d-title">性能分析：三种抽样方案实测对比（50 名学生 × 20 万次）</div>
+  <svg width="760" height="420" viewBox="0 0 760 420">
+    <g font-size="14" fill="#333">
+      <!-- y 轴参考 -->
+      <line x1="170" y1="70" x2="170" y2="330" stroke="#ccc" stroke-width="1"/>
+      <line x1="170" y1="330" x2="730" y2="330" stroke="#ccc" stroke-width="1"/>
+      <text x="120" y="336" font-size="13" fill="#888" text-anchor="middle">吞吐量</text>
+      <text x="120" y="352" font-size="13" fill="#888" text-anchor="middle">（万次/秒）</text>
+
+      <!-- 刻度（0 ~ 1500 万次/秒） -->
+      <g font-size="11" fill="#999" text-anchor="middle">
+        <line x1="180" y1="322" x2="180" y2="338" stroke="#999"/>
+        <text x="180" y="354">0</text>
+        <line x1="360" y1="322" x2="360" y2="338" stroke="#999"/>
+        <text x="360" y="354">500</text>
+        <line x1="540" y1="322" x2="540" y2="338" stroke="#999"/>
+        <text x="540" y="354">1000</text>
+        <line x1="720" y1="322" x2="720" y2="338" stroke="#999"/>
+        <text x="720" y="354">1500</text>
+      </g>
+
+      <!-- row1 1041/1500*540=375 -->
+      <text x="168" y="112" font-size="13.5" text-anchor="end">普通随机 O(1)</text>
+      <rect x="180" y="88" width="375" height="46" rx="8" fill="#c9c3d9"/>
+      <text x="571" y="117" font-size="14" font-weight="700" fill="#555">1041 万次/秒</text>
+
+      <!-- row2 39/1500*540=14 -->
+      <text x="168" y="202" font-size="13.5" text-anchor="end">加权 O(n) choices</text>
+      <rect x="180" y="176" width="14" height="46" rx="8" fill="#ff9a3c"/>
+      <text x="210" y="205" font-size="14" font-weight="700" fill="#ee0a24">39 万次/秒（慢 26 倍）</text>
+
+      <!-- row3 1315/1500*540=473 -->
+      <text x="168" y="300" font-size="13.5" text-anchor="end">前缀和+二分 O(log n)</text>
+      <rect x="180" y="270" width="473" height="46" rx="8" fill="#7c4dff"/>
+      <text x="669" y="299" font-size="14" font-weight="700" fill="#7c4dff">1315 万次/秒（快 33 倍）</text>
+
+      <text x="170" y="386" font-size="13" fill="#666">结论：random.choices 每次调用重建权重列表 O(n)，cProfile 热点为权重列表推导（约 79% 耗时）。</text>
+      <text x="170" y="406" font-size="13" fill="#666">改进：预计算前缀和 + random()×total + bisect（O(log n)），仅在积分变化时重建缓存，实测提速约 33 倍。</text>
+    </g>
+  </svg>
+</div>
+
+</body>
+</html>
