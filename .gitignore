@@ -1,0 +1,16 @@
+# 依赖
+node_modules/
+miniprogram_npm/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# 系统
+.DS_Store
+.screenshots/
+.trae-html-share-packages/
+.vscode/

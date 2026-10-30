@@ -1,0 +1,38 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/ranking/ranking",
+    "pages/import/import",
+    "pages/shop/shop"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ff6b35",
+    "navigationBarTitleText": "课堂随机点名",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#fff6ec"
+  },
+  "tabBar": {
+    "color": "#9b9b9b",
+    "selectedColor": "#ff6b35",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "点名"
+      },
+      {
+        "pagePath": "pages/ranking/ranking",
+        "text": "排名"
+      },
+      {
+        "pagePath": "pages/import/import",
+        "text": "名单"
+      },
+      {
+        "pagePath": "pages/shop/shop",
+        "text": "商店"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

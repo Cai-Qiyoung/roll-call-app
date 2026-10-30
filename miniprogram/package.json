@@ -1,0 +1,8 @@
+{
+  "name": "random-roll-call-miniprogram",
+  "version": "1.0.0",
+  "description": "课堂随机点名系统 - 微信小程序端",
+  "dependencies": {
+    "@vant/weapp": "^1.11.7"
+  }
+}
